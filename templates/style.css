@@ -69,10 +69,10 @@ ul.index {
 }
 
 code .language-* {
-  font-family: 'Fira Code', monospace;
+  font-family: 'Fira Code', monospace !important;
   white-space: pre;
 }
 
 @supports (font-variation-settings: normal) {
-  code { font-family: 'Fira Code VF', monospace; }
+  code { font-family: 'Fira Code VF', monospace !important; }
 }
