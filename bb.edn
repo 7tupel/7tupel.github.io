@@ -3,7 +3,7 @@
          :git/sha "792f952be8fe0f3326b293dde3251f6a09deaf0c"}}
  :tasks
  {:requires ([quickblog.cli :as cli])
-  :init (def opts {:blog-title "7tupel.net"
+  :init (def opts {:blog-title "7tupel.github.io"
                    :blog-description "A blog about Software Engineering topics with a focus on data driven development and functional programming."
                    :blog-author "Moritz Moxter"
                    :out-dir "docs"
