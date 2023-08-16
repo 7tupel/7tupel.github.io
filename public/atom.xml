@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>7tupel.net</title>
+  <link href="https://blog.7tupel.net/atom.xml" rel="self"/>
+  <link href="https://blog.7tupel.net/"/>
+  <updated>2023-08-16T08:17:52+00:00</updated>
+  <id>https://blog.7tupel.net/</id>
+  <author>
+    <name>Moritz Moxter</name>
+  </author>
+  <entry>
+    <id>https://blog.7tupel.net/r2-architecture.html</id>
+    <link href="https://blog.7tupel.net/r2-architecture.html"/>
+    <title>R2 - A Data Driven Architecture</title>
+    <updated>2023-08-16T23:59:59+00:00</updated>
+    <content type="html"><![CDATA[<p>Write a blog post here!</p>]]></content>
+  </entry>
+</feed>
