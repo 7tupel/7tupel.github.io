@@ -1,0 +1,79 @@
+Title: The State of Webapps
+Date: 2023-08-13
+Tags: webapp, architecture
+
+Modern webapps are complex. To reduce the complexity it's a common abstraction to split them into a client side application that runs in the browser and a server side application running in the mysterious cloud. This abstraction is very rough and does increasingly often not fit reality. More and more frameworks keep growing that promise to be a full-stack client and server solution to build webapps and boundaries between client and server get blurry. This trend does not only promise quicker and cheaper development cycles but it also follows the idea to write code once and run it everywhere. In the domain of webapps, Javascript and derivates like Typescript became the language of choice because they can be run both in the web browser and on the server side. They are also capable to build native mobile apps with the same full stack frameworks that are used to build the server side application and the webapp.
+
+I don't like the idea to write code once and run it everywhere. I don't like the idea to use a single framework to build an application for very different target platforms.
+
+Using a single language, framework and code base seems very appealing in the beginning and for very small and limited applications this approach is very fine. But the larger an application grows the more complex it will become. Being able to run the application on more than one target platform with "no worries about how to manage and sync state" adds even more complexity. 
+
+## Going Data Driven
+
+When a new product is planned, the choice which language and frameworks will be used is often driven by keeping down cost, getting a short time to marked, the current trends of technology and availability of developers already familiar with the technologies. All of those reasons are very understandable and they should not just get disregarded. Yet they will many times end up in choosing the technologies I described above with their limitations and problems.
+
+When building a new product - or rather any software driven product - the focus should lay on what the product does. And in almost all cases the answer can be broken down to "read data, process it, present the result, repeat".
+
+With this rather trivial insight I would suggest to build the product with the data as the smallest building block. Ensure the data is treated the same way in all parts of the application. This applies to the technical representation of the data and also on how to fetch and change it.
+
+## State and Data Consistency
+
+A colleague of mine wrote a blog article about the [Frontend Architecture](https://gerroden.github.io/frontend-architecture-blueprint/) of modern webapps and he states, that many of the techniques learned in the past years in software development on the server is simply dropped and forgotten when looking on how we build modern frontends. And he is right. Presentation, data fetching, local state, data processing, etc. is all mangled together and the worst of these problems probably being bad state management. Assuming the webapp is build using a library like react, state can be placed and managed inside a UI-Component, get passed down from a parent UI-Component or placed into some (more or less) global state container. 
+
+This necessarily leads to problems like the following:
+
+- **State Leaks**: Depending on the scope of the state, UI-Components may receive unnecessary updates or updates are lost.
+- **Performance Problems**: Nested states can trigger new and expensive computations or data fetching. This is especially problematic in deeply nested UI-Component trees.
+- **Unclear Responsibilities**: With shared state, the responsibility of changing the state can become unclear. Child UI-Components may or may not update state. Worst case, state updates could override each other leading to data inconsistency.
+- **Complex Code**: With state and state manipulation logic distributed throughout the code base, the code becomes difficult to read, understand and maintain. 
+- **User Experience**: As a result the user experience can degrade badly due to unnecessary reloads or waiting for data fetching.
+
+Based on these problems it is clear that the how and where state is placed, accessed and changed needs a clear structure. But when talking about state, let's not forget the very simple fact that state is just data. 
+
+## The Web After Tomorrow
+
+Nikita Prokopov describes the pain points of data management and his idea of a modern architecture that would solve at least some of the challenges in his blog post [The web after tomorrow](https://tonsky.me/blog/the-web-after-tomorrow/). To quickly summarize the key ideas of the _web after tomorrow_ related to the problem of state management, data and how we manipulate it should be consistent for a software system.
+
+Most traditional webapps poll the server for some piece of data, i.e. using a REST-like API request. The server then processes the request (authentication, authorization, input validation) and collects the data (i.e. from a database system) and sends it back to the client by transforming the data into JSON or a similar on the wire format. The client (the webapp) takes the data, decodes and transforms it into a local format (i.e. objects, arrays, scalars) and presents the data to the user. In the same way, a client can send a request with some arguments to the server to update data. Again the server will process the request and write data to the database. 
+
+With this conventional approach data can become inconsistent very easily. For example, a modern webapp might have several elements that require their own datasets. Following the idea of data encapsulation and responsibilities as modeled in the Object Oriented paradigm - many modern webapps are build using this principle - , each of those elements will fetch and manage their data independently. This works well as long as data does not overlap between the different elements. If one element fetches data periodically, it might has received a newer version of the data from the server than another element which has fetched the data only once it was added to the DOM. Or as another example, a webapp might have a top level navigation bar with a widget showing the name and profile picture of the user. Another element of the webapp is a form to update the user information. When a user updates his profile picture using the form, the element inside the navigation bar will not automatically get updated because it only fetched the profile picture once it was mounted, effectively introducing inconsistent data in the webapp.
+
+There are of cause several options to go on with the problem and in the example of the user's profile picture the data inconsistency might be considered non critical. Implementing some kind of update mechanism would be surely possible. I.e. the development team could add a message bus and each element of the webapp can subscribe to messages that might inform them to update their data. But this would be complex since both elements that change data must send a message to the bus and other elements must subscribe to it. And even if no subscription is missing and all events are correctly put onto the bus, the user profile image element would need to fetch the new picture from a server resulting in unnecessary requests and the update to that element would always be late. 
+
+<figure>
+  <img src="assets/posts/state-of-webapps/data-layers.png" alt="A top-down view of the data layers in the model of the web after tomorrow" style="max-width:100%;"/>
+  <figcaption>Figure 1 - The Web After Tomorrow data layers - © by Nikita Prokopov</figcaption>
+</figure>
+
+Nikita suggests two simple ideas to avoid the problems. He proposes a hierarchy of top-down layered data views as described in _Figure 1_. The single source of truth, i.e. the database, contains all data relevant for the software system. On top of this data, several layers of filtering happens and trough these layers each client has its own view on the data available to this client. This filtering can for example include per tenant filtering and access control filters but also filters that are requested by the client itself (i.e. something like pagination). 
+
+The second piece is a unified mechanism to fetch and update data. Instead of encapsulating state and the logic to manipulate state in an Object Oriented style inside of the elements of the webapp, each element is kept stupid. The webapp is build with a single global data store and a single function exists to update the data. Changes are persisted in the data store and synced to the server. 
+
+_The details of the data management mechanism are complex and will require an article for itself some time in the future_.
+
+## Final Thoughts
+
+Using this approach would allow us developers to build high quality webapps that are easy to maintain and extend. While the initial complexity of creating software systems this way might seem high at first, it will reduce complexity a lot even on short term.
+
+I will write about the details of how such a system can be build and how the unified data management mechanism might look like in a future article.
+
+
+## Sources and Related Work
+
+- [Out of the Tar Pit](https://curtclifton.net/papers/MoseleyMarks06a.pdf) - Mosley and Marks
+- [Frontend Architecture Blueprint](https://gerroden.github.io/frontend-architecture-blueprint/) - Lars-Erik Kimmel
+- [The web after tomorrow](https://tonsky.me/blog/the-web-after-tomorrow/) - Nikita Prokopov
+- [Atomic Architecture](https://www.juxt.pro/blog/atomic-architecture/) - Malcolm Sparks
+
+## Glossary
+
+<dl>
+  <dt>**Container**</dt>
+  <dd>A _Container_ is a separately runnable/deployable unit that executes code or stores data. See [C4 Model](https://c4model.com/#ContainerDiagram)</dd>
+  <dt>**Component**</dt>
+  <dd>A _Component_ is a grouping of related functionality encapsulated behind a well-defined interface. See [C4 Model](https://c4model.com/#ComponentDiagram)</dd>
+  <dt>**UI-Component**</dt>
+  <dd>_UI-Components_ let you split the UI into independent, reusable pieces. Can be thought as a synonym of a Component in React or Vue.</dd>
+</dl>
+<br />
+
